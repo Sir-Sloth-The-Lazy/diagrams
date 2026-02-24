@@ -1,16 +1,16 @@
 {
   "files": {
-    "main.css": "/neurallm/static/css/main.f855e6bc.css",
-    "main.js": "/neurallm/static/js/main.caa3dc11.js",
-    "static/js/453.8b39e89c.chunk.js": "/neurallm/static/js/453.8b39e89c.chunk.js",
-    "static/media/logo.svg": "/neurallm/static/media/logo.6ce24c58023cc2f8fd88fe9d219db6c6.svg",
-    "index.html": "/neurallm/index.html",
-    "main.f855e6bc.css.map": "/neurallm/static/css/main.f855e6bc.css.map",
-    "main.caa3dc11.js.map": "/neurallm/static/js/main.caa3dc11.js.map",
-    "453.8b39e89c.chunk.js.map": "/neurallm/static/js/453.8b39e89c.chunk.js.map"
+    "main.css": "/diagrams/static/css/main.f855e6bc.css",
+    "main.js": "/diagrams/static/js/main.49d34e56.js",
+    "static/js/453.8b39e89c.chunk.js": "/diagrams/static/js/453.8b39e89c.chunk.js",
+    "static/media/logo.svg": "/diagrams/static/media/logo.6ce24c58023cc2f8fd88fe9d219db6c6.svg",
+    "index.html": "/diagrams/index.html",
+    "main.f855e6bc.css.map": "/diagrams/static/css/main.f855e6bc.css.map",
+    "main.49d34e56.js.map": "/diagrams/static/js/main.49d34e56.js.map",
+    "453.8b39e89c.chunk.js.map": "/diagrams/static/js/453.8b39e89c.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.f855e6bc.css",
-    "static/js/main.caa3dc11.js"
+    "static/js/main.49d34e56.js"
   ]
 }
