@@ -1,6 +1,7 @@
 import { HashRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import './App.css';
 import Diagram from './neurallm_issue49';
+import NeuralLamArchitecture from './neural_lam_architecture';
 
 // A simple home page to list all your diagrams
 function Home() {
@@ -13,6 +14,11 @@ function Home() {
         <li>
           <Link to="/neurallm" style={{ color: '#0366d6', textDecoration: 'none', fontWeight: 'bold' }}>
             NeuralLM Architecture Redesign
+          </Link>
+        </li>
+        <li>
+          <Link to="/neural-lam-architecture" style={{ color: '#0366d6', textDecoration: 'none', fontWeight: 'bold' }}>
+            Neural-LAM Architecture Refactor (Before/After)
           </Link>
         </li>
         {/* Add more links here later! */}
@@ -30,6 +36,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/neurallm" element={<Diagram />} />
+          <Route path="/neural-lam-architecture" element={<NeuralLamArchitecture />} />
         </Routes>
       </div>
     </Router>
