@@ -1,24 +1,6 @@
 import { useState } from "react";
 
 const BEFORE = {
-  title: "BEFORE — Monolithic ARModel",
-  subtitle: "Single class, ~600 lines, all concerns fused",
-  color: "#dc2626",
-  bg: "#fef2f2",
-  border: "#fca5a5",
-  nodes: [
-    { id: "armodel", label: "ARModel", sublabel: "pl.LightningModule", color: "#dc2626", textColor: "#fff", w: 320, main: true,
-      children: [
-        { label: "Training loop + optimizer config" },
-        { label: "Loss computation (MSE only)" },
-        { label: "Autoregressive rollout" },
-        { label: "Boundary masking" },
-        { label: "Normalization & clamping" },
-        { label: "Metrics + visualization" },
-        { label: "GNN encode-process-decode" },
-      ]
-    }
-  ],
   problems: [
     "Cannot swap rollout strategy (AR → ensemble)",
     "Cannot add probabilistic step predictor",
@@ -30,11 +12,6 @@ const BEFORE = {
 };
 
 const AFTER = {
-  title: "AFTER — PR #208 Composable Hierarchy",
-  subtitle: "3 focused layers, dependency-injected, extensible",
-  color: "#16a34a",
-  bg: "#f0fdf4",
-  border: "#86efac",
   layers: [
     {
       id: "fm", label: "ForecasterModule", sublabel: "pl.LightningModule",
@@ -65,6 +42,7 @@ const AFTER = {
     "Boundary mask owned by ARForecaster only",
     "Dependency injection removes circular import",
     "Explicit kwargs enable programmatic init",
+    "InteractionNet extended with init_scheme=\"propagation\" — PropagationNet behaviour, zero new classes",
   ]
 };
 
@@ -77,23 +55,7 @@ const CHANGES = [
   { item: "Circular import", before: "model.py ↔ training.py mutual imports", after: "Eliminated: ForecasterModule knows only the Forecaster interface" },
   { item: "Test file", before: "test_refactored_hierarchy.py", after: "test_prediction_model_classes.py (per mentor comment)" },
   { item: "border_states naming", before: "border_states (inconsistent with literature)", after: "boundary_states (matches paper terminology)" },
-];
-
-const DATAFLOW = [
-  { id: "data", label: "DataLoader", sublabel: "init_states · forcing · boundary_states", color: "#374151", x: 0 },
-  { id: "fm_in", label: "ForecasterModule", sublabel: "training_step / validation_step", color: "#1e40af", x: 1 },
-  { id: "arf", label: "ARForecaster", sublabel: "rollout loop  ·  boundary masking", color: "#0891b2", x: 2 },
-  { id: "sp", label: "StepPredictor", sublabel: "forward(prev, prev_prev, forcing)", color: "#7c3aed", x: 3 },
-  { id: "gnn", label: "GNN Encode-Process-Decode", sublabel: "G2M → Processor → M2G → output_map", color: "#b45309", x: 4 },
-  { id: "out", label: "(next_state, pred_std | None)", sublabel: "returned per AR step", color: "#374151", x: 5 },
-  { id: "loss", label: "Loss + Metrics", sublabel: "MSE | NLL | ELBO | CRPS · RMSE · SSR", color: "#1e40af", x: 6 },
-];
-
-const FUTURE_FLOW = [
-  { id: "ef", label: "EnsembleForecaster", sublabel: "K independent rollouts  →  (B, K, T, N, V)", color: "#0891b2" },
-  { id: "ssp", label: "StochasticStepPredictor", sublabel: "samples Z_t from LatentMap → passes to Predictor g", color: "#7c3aed" },
-  { id: "lm", label: "LatentMap", sublabel: "(X_{t-2:t-1}, F_t) → (μ_Z, σ_Z) at top mesh level", color: "#b45309" },
-  { id: "in_", label: "InferenceNetwork", sublabel: "(X_{t-2:t-1}, X_t, F_t) → (μ_q, σ_q)  [training only]", color: "#be185d" },
+  { item: "PropagationNet", before: "Separate class planned — duplicates InteractionNet scaffold entirely", after: "init_scheme parameter added to InteractionNet: 'standard' (default) or 'propagation'. Zero new classes, zero duplicated code." },
 ];
 
 export default function App() {
@@ -217,7 +179,7 @@ export default function App() {
               </div>
             </div>
 
-            {/* Separator arrow */}
+            {/* Net result banner */}
             <div style={{ textAlign: "center", marginTop: 28, padding: "16px", background: "#0f172a", border: "1px solid #1e293b", borderRadius: 8 }}>
               <div style={{ fontSize: 11, color: "#64748b", letterSpacing: "0.15em", fontWeight: 700 }}>NET RESULT OF PR #208</div>
               <div style={{ marginTop: 8, fontSize: 13, color: "#cbd5e1" }}>
@@ -266,7 +228,6 @@ export default function App() {
               Tensor shapes annotated at every interface boundary. <span style={{ color: "#818cf8" }}>B</span> = batch · <span style={{ color: "#818cf8" }}>T</span> = pred_steps · <span style={{ color: "#818cf8" }}>N</span> = num_grid_nodes · <span style={{ color: "#818cf8" }}>d_f</span> = feature_dim
             </div>
 
-            {/* Main flow */}
             <div style={{ display: "flex", flexDirection: "column", gap: 0, maxWidth: 760 }}>
 
               {/* DataLoader */}
@@ -319,9 +280,7 @@ export default function App() {
               {/* ARForecaster */}
               <div style={{ background: "#0c2a30", border: "1px solid #0891b2", borderRadius: 10, padding: 16 }}>
                 <div style={{ fontWeight: 700, color: "#67e8f9", fontSize: 14 }}>ARForecaster <span style={{ fontSize: 11, color: "#0891b2", fontWeight: 400 }}>Forecaster (nn.Module)</span></div>
-                <div style={{ marginTop: 10, fontSize: 12, color: "#cbd5e1" }}>
-                  AR loop over T steps:
-                </div>
+                <div style={{ marginTop: 10, fontSize: 12, color: "#cbd5e1" }}>AR loop over T steps:</div>
                 <div style={{ marginTop: 8, background: "#0f172a", borderRadius: 6, padding: "10px 14px", fontFamily: "'IBM Plex Mono', monospace", fontSize: 11, color: "#94a3b8", lineHeight: 1.8 }}>
                   <div><span style={{ color: "#64748b" }}>for i in range(T):</span></div>
                   <div style={{ paddingLeft: 16 }}><span style={{ color: "#67e8f9" }}>pred_state, pred_std</span> = self.predictor(prev, prev_prev, forcing[:, i])</div>
@@ -355,7 +314,7 @@ export default function App() {
                   <div style={{ paddingLeft: 16, color: "#64748b" }}># rescale delta + clamp new_state</div>
                   <div><span style={{ color: "#86efac" }}>returns</span>: (next_state <span style={{ color: "#475569" }}>(B,N,d_f)</span>, pred_std <span style={{ color: "#475569" }}>(B,N,d_f) | None</span>)</div>
                 </div>
-                <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
+                <div style={{ display: "flex", gap: 8, marginTop: 10, flexWrap: "wrap" }}>
                   {["GraphLAM", "HiLAM", "HiLAMParallel"].map((m, i) => (
                     <span key={i} style={{ fontSize: 11, background: "#7c3aed22", color: "#c4b5fd", padding: "3px 10px", borderRadius: 4, border: "1px solid #7c3aed44" }}>{m}</span>
                   ))}
@@ -393,21 +352,29 @@ export default function App() {
         {/* ── TAB 4: FUTURE EXTENSION ── */}
         {tab === "future" && (
           <div>
-            <div style={{ fontSize: 13, color: "#64748b", marginBottom: 24 }}>
+            <div style={{ fontSize: 13, color: "#64748b", marginBottom: 16 }}>
               Phase 2 (Issue #62): Graph-EFM probabilistic model plugs into the hierarchy built in PR #208.
               <span style={{ color: "#86efac", marginLeft: 8 }}>Zero changes to existing deterministic models.</span>
             </div>
 
+
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, marginBottom: 24 }}>
+
               {/* EnsembleForecaster */}
               <div className="card" style={{ padding: 20, borderColor: "#0891b2" }}>
                 <div style={{ fontWeight: 700, color: "#67e8f9", marginBottom: 4 }}>EnsembleForecaster</div>
-                <div style={{ fontSize: 11, color: "#0891b2", marginBottom: 12 }}>extends Forecaster — sits at same level as ARForecaster</div>
+                <div style={{ fontSize: 11, color: "#0891b2", marginBottom: 12 }}>thin wrapper — sits at same level as ARForecaster</div>
                 <div style={{ background: "#0f172a", borderRadius: 6, padding: "10px 14px", fontSize: 11, fontFamily: "'IBM Plex Mono', monospace", color: "#94a3b8", lineHeight: 1.8 }}>
                   <div><span style={{ color: "#67e8f9" }}>forward</span>(init_states, forcing, boundary, K=50)</div>
-                  <div style={{ paddingLeft: 16, color: "#64748b" }}># run K independent AR rollouts</div>
-                  <div style={{ paddingLeft: 16, color: "#64748b" }}># each samples fresh Z_t per step</div>
+                  <div style={{ paddingLeft: 16, color: "#64748b" }}># fold: x = (B*K, N, d_f)</div>
+                  <div style={{ paddingLeft: 16, color: "#64748b" }}># call: ARForecaster.forward(x)</div>
+                  <div style={{ paddingLeft: 16, color: "#64748b" }}>#   → (B*K, T, N, d_f)</div>
+                  <div style={{ paddingLeft: 16, color: "#64748b" }}># unfold: → (B, K, T, N, d_f)</div>
+                  <div style={{ paddingLeft: 16, color: "#64748b" }}># StepPredictor unaware of K</div>
                   <div><span style={{ color: "#86efac" }}>returns</span>: <span style={{ color: "#f59e0b" }}>(B, K, T, N, d_f)</span></div>
+                </div>
+                <div style={{ marginTop: 10, padding: "6px 10px", background: "#0f172a", borderRadius: 6, fontSize: 11, color: "#64748b", borderLeft: "2px solid #0891b2" }}>
+                  Batch-dim folding per Issue #335 — boundary masking remains owned by ARForecaster
                 </div>
               </div>
 
@@ -420,36 +387,73 @@ export default function App() {
                   <div style={{ paddingLeft: 16, color: "#64748b" }}># sample Z_t ~ LatentMap prior</div>
                   <div style={{ paddingLeft: 16, color: "#64748b" }}># inject Z_t at top mesh level</div>
                   <div style={{ paddingLeft: 16, color: "#64748b" }}># run deterministic predictor g</div>
-                  <div><span style={{ color: "#86efac" }}>returns</span>: (next_state, <span style={{ color: "#f59e0b" }}>None</span>) <span style={{ color: "#64748b" }}># std in ensemble spread</span></div>
+                  <div><span style={{ color: "#86efac" }}>returns</span>: (next_state, <span style={{ color: "#f59e0b" }}>None</span>) <span style={{ color: "#64748b" }}># spread via ensemble K</span></div>
                 </div>
               </div>
 
-              {/* LatentMap */}
-              <div className="card" style={{ padding: 20, borderColor: "#b45309" }}>
-                <div style={{ fontWeight: 700, color: "#fcd34d", marginBottom: 4 }}>LatentMap</div>
-                <div style={{ fontSize: 11, color: "#b45309", marginBottom: 12 }}>new nn.Module — GNN over top mesh level GL</div>
-                <div style={{ background: "#0f172a", borderRadius: 6, padding: "10px 14px", fontSize: 11, fontFamily: "'IBM Plex Mono', monospace", color: "#94a3b8", lineHeight: 1.8 }}>
-                  <div><span style={{ color: "#fcd34d" }}>forward</span>(X_prev, X_prev_prev, F_t)</div>
-                  <div><span style={{ color: "#86efac" }}>returns</span>: (μ_Z, σ_Z) <span style={{ color: "#64748b" }}># Gaussian prior params</span></div>
-                  <div style={{ marginTop: 6, color: "#64748b" }}># at inference: sample Z_t ~ N(μ_Z, σ_Z)</div>
-                  <div style={{ color: "#64748b" }}># at training: used for KL term in ELBO</div>
+              {/* HierarchicalGraphEFM — full width, replaces LatentMap + InferenceNetwork cards */}
+              <div className="card" style={{ padding: 20, borderColor: "#b45309", gridColumn: "1 / -1" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
+                  <span style={{ fontWeight: 700, color: "#fcd34d", fontSize: 14 }}>HierarchicalGraphEFM</span>
+                  <span style={{ fontSize: 11, background: "#78350f", color: "#fcd34d", padding: "2px 8px", borderRadius: 4, fontWeight: 700 }}>COMPLETE UNIT — single PR</span>
                 </div>
-              </div>
+                <div style={{ fontSize: 11, color: "#b45309", marginBottom: 16 }}>
+                  StochasticStepPredictor implementation — LatentMap + InferenceNetwork + Predictor g designed and introduced together
+                </div>
 
-              {/* InferenceNetwork */}
-              <div className="card" style={{ padding: 20, borderColor: "#be185d" }}>
-                <div style={{ fontWeight: 700, color: "#f9a8d4", marginBottom: 4 }}>InferenceNetwork</div>
-                <div style={{ fontSize: 11, color: "#be185d", marginBottom: 12 }}>VAE encoder — TRAINING ONLY — activated by ForecasterModule</div>
-                <div style={{ background: "#0f172a", borderRadius: 6, padding: "10px 14px", fontSize: 11, fontFamily: "'IBM Plex Mono', monospace", color: "#94a3b8", lineHeight: 1.8 }}>
-                  <div><span style={{ color: "#f9a8d4" }}>forward</span>(X_prev, X_prev_prev, X_true, F_t)</div>
-                  <div><span style={{ color: "#86efac" }}>returns</span>: (μ_q, σ_q) <span style={{ color: "#64748b" }}># posterior approx.</span></div>
-                  <div style={{ marginTop: 6, color: "#64748b" }}># ELBO = KL(q||p) + reconstruction</div>
-                  <div style={{ color: "#64748b" }}># not used at inference time</div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
+
+                  {/* LatentMap */}
+                  <div style={{ background: "#0f172a", border: "1px solid #92400e", borderRadius: 8, padding: 14 }}>
+                    <div style={{ fontWeight: 700, color: "#fcd34d", fontSize: 12, marginBottom: 4 }}>LatentMap</div>
+                    <div style={{ fontSize: 10, color: "#78350f", marginBottom: 10 }}>GNN over top mesh level G_L</div>
+                    <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 10, color: "#94a3b8", lineHeight: 1.8 }}>
+                      <div><span style={{ color: "#fcd34d" }}>input</span>: (X_prev, X_prev_prev, F_t)</div>
+                      <div><span style={{ color: "#86efac" }}>returns</span>: (μ_Z, σ_Z)</div>
+                      <div style={{ color: "#64748b", marginTop: 4 }}># prior at inference</div>
+                      <div style={{ color: "#64748b" }}># KL term at training</div>
+                    </div>
+                  </div>
+
+                  {/* InferenceNetwork */}
+                  <div style={{ background: "#0f172a", border: "1px solid #9d174d", borderRadius: 8, padding: 14 }}>
+                    <div style={{ fontWeight: 700, color: "#f9a8d4", fontSize: 12, marginBottom: 4 }}>InferenceNetwork</div>
+                    <div style={{ fontSize: 10, color: "#9d174d", marginBottom: 10 }}>VAE encoder · TRAINING ONLY</div>
+                    <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 10, color: "#94a3b8", lineHeight: 1.8 }}>
+                      <div><span style={{ color: "#f9a8d4" }}>input</span>: (X_prev, X_prev_prev, X_true, F_t)</div>
+                      <div><span style={{ color: "#86efac" }}>returns</span>: (μ_q, σ_q)</div>
+                      <div style={{ color: "#64748b", marginTop: 4 }}># posterior approx.</div>
+                      <div style={{ color: "#64748b" }}># off at inference</div>
+                    </div>
+                  </div>
+
+                  {/* Predictor g */}
+                  <div style={{ background: "#0f172a", border: "1px solid #1e3a5f", borderRadius: 8, padding: 14 }}>
+                    <div style={{ fontWeight: 700, color: "#93c5fd", fontSize: 12, marginBottom: 4 }}>Predictor g</div>
+                    <div style={{ fontSize: 10, color: "#1e40af", marginBottom: 10 }}>deterministic GNN — Z_t injected at top mesh</div>
+                    <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 10, color: "#94a3b8", lineHeight: 1.8 }}>
+                      <div><span style={{ color: "#93c5fd" }}>step 1</span>: LatentMap → (μ_p, σ_p)</div>
+                      <div><span style={{ color: "#93c5fd" }}>step 2</span>: if training: InferenceNetwork</div>
+                      <div><span style={{ color: "#93c5fd" }}>step 3</span>: sample Z_t from q or p</div>
+                      <div><span style={{ color: "#93c5fd" }}>step 4</span>: inject Z_t at top mesh (residual)</div>
+                      <div><span style={{ color: "#93c5fd" }}>step 5</span>: downward GNN sweep</div>
+                      <div><span style={{ color: "#86efac" }}>returns</span>: (next_state, None)</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* InteractionNet extension note */}
+                <div style={{ marginTop: 16, padding: "10px 14px", background: "#0f172a", border: "1px solid #334155", borderLeft: "3px solid #16a34a", borderRadius: 6, fontSize: 11, color: "#94a3b8" }}>
+                  <span style={{ color: "#86efac", fontWeight: 700 }}>InteractionNet extension</span>
+                  <span style={{ color: "#64748b", marginLeft: 8 }}>·</span>
+                  <span style={{ marginLeft: 8 }}>
+                    PropagationNet behaviour is implemented via <span style={{ color: "#86efac", fontFamily: "monospace" }}>init_scheme="propagation"</span> on the existing InteractionNet class — no new class, no duplicated code. Forces Z_t to propagate from epoch 1 by initializing aggr_mlp to average neighboring node values at near-zero init.
+                  </span>
                 </div>
               </div>
             </div>
 
-            {/* Full Phase 2 training flow */}
+            {/* Phase 2 training protocol */}
             <div className="card" style={{ padding: 20 }}>
               <div style={{ fontWeight: 700, color: "#f1f5f9", marginBottom: 16, fontFamily: "'IBM Plex Sans', sans-serif" }}>Phase 2 Training Protocol (Graph-EFM)</div>
               <div style={{ display: "flex", gap: 0, alignItems: "stretch" }}>
